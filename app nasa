@@ -1,0 +1,1502 @@
+import React, { useState, useEffect, useCallback } from 'react';
+// Simulated Firebase Imports. In a real environment, these would be uncommented:
+// import { initializeApp } from 'firebase/app';
+// import { getAuth, signInWithCustomToken, signInAnonymously } from 'firebase/auth';
+// import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
+
+// --- CORE FINANCIAL CONSTANT ---
+const TOKEN_VALUE_USD = 0.83; // 1 T$ = $0.83 USD
+// ------------------------------
+
+// --- NEW ICON: Banknote ---
+const Banknote = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 4H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1z"/><circle cx="12" cy="12" r="3"/><path d="M16 11h-1M8 11h1M16 13h-1M8 13h1"/></svg>; 
+// --- END ICON: Banknote ---
+
+
+// --- NEW ECO CITY LOGO SVG COMPONENT ---
+const EcoCityLogoSVG = (props) => (
+    <div {...props} className={`p-0 bg-transparent ${props.className}`}>
+        <svg viewBox="0 0 100 100" className="w-8 h-8" xmlns="http://www.w3.org/2000/svg">
+            <g transform="scale(0.85) translate(8, 8)">
+                {/* Green Oval Background (Darker Emerald for contrast) */}
+                <ellipse cx="50" cy="50" rx="48" ry="38" fill="#059669"/>
+                
+                {/* ECO Text (White, Bold) */}
+                <text x="50" y="38" fontSize="22" fontWeight="900" fontFamily="Inter, sans-serif" fill="white" textAnchor="middle" dominantBaseline="middle">
+                    ECO
+                </text>
+                
+                {/* City Text (White, Outline Style) */}
+                <text x="50" y="68" fontSize="28" fontWeight="600" fontFamily="Inter, sans-serif" fill="white" stroke="white" strokeWidth="1" textAnchor="middle" dominantBaseline="middle" style={{ paintOrder: 'stroke fill' }}>
+                    City
+                </text>
+            </g>
+        </svg>
+    </div>
+);
+// ---------------------------------------
+
+// --- UPDATED COMPONENT: WALLET DETAILS SCREEN (Impact Cache) ---
+const WalletDetailsScreen = ({ setView, tokens }) => {
+    // Reverted to use base token value for all financial calculations
+    const currentPrice = TOKEN_VALUE_USD.toFixed(2); 
+    const totalUSDValue = tokens * TOKEN_VALUE_USD;
+    const mockUSDValue = totalUSDValue; // Use base value now
+
+    return (
+        <div className="p-5 space-y-6">
+            <Header title="Impact Cache (Loot Vault)" setView={setView} mode="Wallet" targetView="dashboard" />
+
+            <section className="bg-gradient-to-br from-emerald-700 to-emerald-900 p-6 rounded-2xl shadow-2xl shadow-emerald-700/50 flex flex-col items-center text-white space-y-2 border-4 border-yellow-400">
+                <Wallet className="w-10 h-10 text-yellow-300 fill-yellow-300/20" /> 
+                <p className="text-base font-light">
+                    Total Green Power
+                </p>
+                <h2 className="text-5xl font-extrabold tracking-wide">
+                    {tokens.toLocaleString('en-US', { minimumFractionDigits: 2 })} T$
+                </h2>
+                <p className="text-xl font-bold opacity-90 text-yellow-300">
+                    &asymp; $ {mockUSDValue.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
+                </p>
+            </section>
+
+            <section className="bg-white p-5 rounded-xl shadow-md border border-gray-100 space-y-4">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center">
+                    <Banknote className="w-5 h-5 mr-2 text-cyan-600"/>
+                    T$ Conversion Power
+                </h3>
+                
+                <div className="space-y-3">
+                    {/* Fixed Rate Display - Bonus removed */}
+                    <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+                        <p className="text-sm font-semibold text-gray-700">Fixed Conversion Rate</p>
+                        <p className="text-sm font-extrabold text-emerald-600 flex items-center">
+                            1 T$ = ${currentPrice} USD
+                        </p>
+                    </div>
+
+                    {/* Total Calculation */}
+                    <div className="p-3 bg-cyan-50 rounded-lg">
+                        <p className="text-xs text-cyan-700 font-medium">Loot Calculation:</p>
+                        <p className="text-sm text-gray-700 font-mono mt-1">
+                            {tokens.toLocaleString('en-US', { minimumFractionDigits: 2 })} T$ &times; ${currentPrice} / T$ = 
+                            <span className="text-base font-extrabold text-cyan-800 ml-1">
+                                $ {mockUSDValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </span>
+                        </p>
+                    </div>
+
+                    {/* Impact Note - Updated with Lore */}
+                    <p className="text-xs text-gray-600 pt-2">
+                        **Impact Lore:** Every Green Token collected represents a piece of **Verified Carbon Power**. This power is traded in the ECO City economy to fund massive global sustainability missions, making your actions matter!
+                    </p>
+                </div>
+            </section>
+            
+            {/* NEW GAME BUTTON: Payout/Redemption is now a Mission Dispatch */}
+            <button 
+                onClick={() => console.log('Simulating Mission Dispatch (Payout Request) and initiating withdrawal security check.')}
+                className="w-full py-4 mt-2 bg-purple-600 text-white font-extrabold uppercase rounded-xl shadow-lg hover:bg-purple-700 transition duration-150 flex items-center justify-center shadow-purple-400/50 text-lg tracking-wider"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 mr-3"><path d="M12 2L9 9l-7 1 5 5-1 7 8-4 8 4-1-7 5-5-7-1z" fill="currentColor"/></svg>
+                Dispatch Financial Reward
+            </button>
+
+
+            <button 
+                onClick={() => setView('dashboard')}
+                className="w-full py-3 mt-4 bg-gray-200 text-gray-700 font-bold rounded-xl shadow-md hover:bg-gray-300 transition duration-150 flex items-center justify-center"
+            >
+                Return to Dashboard
+            </button>
+        </div>
+    );
+};
+// --- END UPDATED COMPONENT: WALLET DETAILS SCREEN (Impact Cache) ---
+
+// --- NEW COMPONENT: RANK MEDAL SVG ---
+const RankMedalSVG = ({ rank }) => {
+    let color = '';
+    let shadow = '';
+    let text = rank;
+
+    switch (rank) {
+        case 1:
+            color = '#FFD700'; // Gold
+            shadow = 'drop-shadow(0 2px 4px rgba(255, 215, 0, 0.5))';
+            break;
+        case 2:
+            color = '#C0C0C0'; // Silver
+            shadow = 'drop-shadow(0 2px 4px rgba(192, 192, 192, 0.5))';
+            break;
+        case 3:
+            color = '#CD7F32'; // Bronze
+            shadow = 'drop-shadow(0 2px 4px rgba(205, 127, 50, 0.5))';
+            break;
+        default:
+            return <div className="text-xl font-extrabold w-8 text-center text-gray-500">{rank}</div>;
+    }
+
+    return (
+        <svg viewBox="0 0 50 50" className="w-8 h-8" style={{ filter: shadow }}>
+            {/* Base Shield/Medal Shape */}
+            <path 
+                d="M 5 15 L 25 5 L 45 15 V 45 L 25 40 L 5 45 Z" 
+                fill={color} 
+                stroke="#333" 
+                strokeWidth="1"
+            />
+            {/* Rank Number */}
+            <text x="25" y="28" fontSize="15" fontWeight="900" fill="white" textAnchor="middle" dominantBaseline="middle">
+                {text}
+            </text>
+        </svg>
+    );
+};
+
+// --- NEW COMPONENT: LEVEL ICON ---
+const LevelIcon = ({ level }) => {
+    let icon = <Leaf className="w-4 h-4" />;
+    let color = 'text-gray-500';
+
+    switch (level) {
+        case 'Seedling':
+            icon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22V5"/><path d="M18 13l-6-6-6 6"/></svg>; // Sprouting seed
+            color = 'text-green-500';
+            break;
+        case 'Bush':
+            icon = <Leaf className="w-4 h-4 fill-emerald-200" />;
+            color = 'text-emerald-600';
+            break;
+        case 'Tree':
+            icon = <TreePine className="w-4 h-4 fill-emerald-300" />;
+            color = 'text-emerald-700';
+            break;
+        case 'Guardian':
+            icon = <Award className="w-4 h-4 fill-blue-300" />;
+            color = 'text-blue-600';
+            break;
+        case 'Master Sustainable': // Changed from 'Master' to match data
+            icon = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L9.5 9l-7.5.5 5 4.5-1 7.5 6-4 6 4-1-7.5 5-4.5-7.5-.5z" fill="currentColor"/></svg>; // Star
+            color = 'text-yellow-600';
+            break;
+    }
+
+    return (
+        <span className={`inline-flex items-center text-xs font-semibold ${color}`}>
+            {React.cloneElement(icon, { className: `w-4 h-4 mr-1 ${color}` })}
+            {level}
+        </span>
+    );
+};
+// --- END NEW COMPONENTS ---
+
+
+// Icon Components (Lucide React)
+const Leaf = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 19 2 19 2c0 2.2-2 4-4 4s-4 2-4 2c-2.2 0-4 2-4 4s-2 4-4 4c-1.1 0-2 1.4-2 2s.9 2 2 2a7 7 0 0 0 4 2z"/><path d="M9.8 6.1c1.1.2 2.1 0 3.2-.3"/></svg>;
+const ArrowRight = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>;
+const Map = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>;
+const BarChart3 = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>;
+const Users = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+const CheckCircle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>;
+const Wallet = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h14a2 2 0 0 1 0 4H5a2 2 0 0 0 0 4h14v1"/><line x1="8" x2="12" y1="6" y2="6"/></svg>;
+const ChevronLeft = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>;
+const Settings = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 0-.75 1.73v.44c0 .35-.18.68-.49.91l-.23.18a2 2 0 0 0-.58 1.62v.22c0 .28.11.55.3 1.25L5 13l2 3h.5L10 17v.5l.5 2h3l.5-2V17l2-3h.5l-.3-.23c-.3-.23-.49-.56-.49-.91v-.44a2 2 0 0 0-.75-1.73l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
+// --- New Icons for Task Resources ---
+const Recycle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 19H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v3"/><path d="M12 21v-4"/><path d="M16 17h-8"/><path d="M16 13h-8"/><path d="M16 9h-8"/></svg>;
+const Bus = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 17H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3"/><path d="M7 15h10"/><path d="M6 10h12"/><path d="M9 19h6"/><path d="M17 17a2 2 0 0 0 2-2v-4h-4"/><path d="M17 19v-2"/></svg>;
+const Bike = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M12 18V5h7"/><path d="M5 18H2v-2h5"/></svg>;
+const TreePine = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 18H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2z"/><path d="M12 4v4"/><path d="M12 12v6"/><path d="m15 15-3-3-3 3"/></svg>; // Changed to be a tree/park icon
+const Award = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"/><path d="M8.21 13.89 7 22l5-3 5 3-1.21-8.11"/></svg>;
+const Bolt = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>; // For Task Details
+const TrendingUp = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 10.5 12.5 5 18"/><path d="M18 7h4v4"/></svg>;
+const TrendingDown = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 17 13.5 8.5 10.5 11.5 5 6"/><path d="M18 17h4v-4"/></svg>;
+// ------------------------------------
+
+
+// --- MOCK SVG CHART COMPONENTS ---
+
+const LineChartSVG = ({ colorClass, height = 'h-24' }) => (
+    <svg className={`w-full ${height}`} viewBox="0 0 100 24" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+            d="M0 20 C 10 10, 20 20, 30 14 C 40 8, 50 18, 60 12 C 70 6, 80 16, 90 10 C 95 8, 100 4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            className={colorClass}
+        />
+        <rect x="0" y="22" width="100" height="2" fill="#e5e7eb" /> {/* Base line */}
+    </svg>
+);
+
+const BarChartSVG = ({ colorClass, height = 'h-24' }) => {
+    // Mock data for 7 bars (Weekly/Monthly view)
+    const data = [10, 15, 8, 20, 12, 18, 14];
+    const maxVal = 20;
+    const barWidth = 100 / (data.length * 1.5); // Bar width calculation
+    const gap = barWidth / 2;
+
+    return (
+        <svg className={`w-full ${height}`} viewBox="0 0 100 24" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            {data.map((value, index) => {
+                const barHeight = (value / maxVal) * 20; // Scale height to 20 units
+                const x = index * (barWidth + gap) + gap / 2;
+                const y = 22 - barHeight;
+
+                return (
+                    <rect
+                        key={index}
+                        x={x}
+                        y={y}
+                        width={barWidth}
+                        height={barHeight}
+                        fill="currentColor"
+                        className={colorClass}
+                        rx="0.5" // Rounded corners for bars
+                    />
+                );
+            })}
+            <rect x="0" y="22" width="100" height="2" fill="#e5e7eb" /> {/* Base line */}
+        </svg>
+    );
+};
+
+// Generic Chart Placeholder component, now rendering SVG
+const ChartPlaceholder = ({ title, color, height = 'h-24', type = 'line', content = '' }) => {
+    const colorClass = color.replace('border-', 'text-');
+    
+    const ChartComponent = type === 'bar' ? BarChartSVG : LineChartSVG;
+
+    return (
+        <div>
+          <p className="text-sm font-semibold text-gray-700 mb-2">{title}</p>
+          <div className={`${height} bg-white rounded-lg border-2 border-dashed ${color} p-2 flex items-center justify-center`}>
+            <ChartComponent colorClass={colorClass} height="h-full" />
+            {/* Optional text content for context, hidden behind the chart area */}
+            <span className="sr-only">{content}</span> 
+          </div>
+        </div>
+    );
+};
+// --- END MOCK SVG CHART COMPONENTS ---
+
+
+// --- COMPONENT: MAP VISUALIZATION (Urban Planner & Resource Map) ---
+const MapVisualizationSVG = ({ isResourceMap = false, activeResources = [] }) => {
+    // Original non-realistic coordinates (smaller area)
+    const resourceLocations = {
+        'Recycling Bins': [{ x: 85, y: 15 }, { x: 50, y: 65 }, { x: 15, y: 80 }],
+        'Public Transit': [{ x: 75, y: 40 }, { x: 30, y: 30 }, { x: 10, y: 45 }],
+        'Bicycle Lanes': [{ x: 50, y: 10 }, { x: 65, y: 85 }, { x: 20, y: 20 }],
+        'Parks': [{ x: 35, y: 60, r: 8 }, { x: 70, y: 75, r: 10 }], // Parks are circles (areas)
+    };
+
+    // Colors for resources
+    const resourceColors = {
+        'Recycling Bins': 'text-green-600',
+        'Public Transit': 'text-blue-600',
+        'Bicycle Lanes': 'text-yellow-600',
+        'Parks': 'text-emerald-500',
+    };
+
+    return (
+        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+            {/* Background: Base/Sky */}
+            <rect width="100" height="100" fill="#e0f7fa" /> 
+
+            {/* Simulated River/Water Body (Simple Curve) */}
+            <path 
+                d="M 5 50 Q 25 40, 50 55 T 95 50" 
+                fill="#81d4fa" 
+                stroke="#4a90e2" 
+                strokeWidth="0.5" 
+            />
+            
+            {/* Simple Urban Grid/Roads (Gray) */}
+            <rect x="10" y="10" width="80" height="80" fill="#f0f0f0" />
+            <line x1="10" y1="35" x2="90" y2="35" stroke="#a0a0a0" strokeWidth="1.5"/>
+            <line x1="10" y1="65" x2="90" y2="65" stroke="#a0a0a0" strokeWidth="1.5"/>
+            <line x1="30" y1="10" x2="30" y2="90" stroke="#a0a0a0" strokeWidth="1.5"/>
+            <line x1="70" y1="10" x2="70" y2="90" stroke="#a0a0a0" strokeWidth="1.5"/>
+
+
+            {/* Urban Planner Mode visualization: Buildings & Static Green Zone */}
+            {!isResourceMap && (
+                <>
+                    {/* Simplified buildings for urban density visualization */}
+                    <rect x="15" y="15" width="10" height="15" fill="#5c5c5c" /> 
+                    <rect x="75" y="70" width="10" height="15" fill="#5c5c5c" /> 
+                    <circle cx="50" cy="50" r="10" fill="#388e3c" opacity="0.9" /> {/* Central Park/Green Zone */}
+                    <text x="50" y="50" fontSize="4" fill="white" textAnchor="middle" alignmentBaseline="middle" className="font-sans font-bold">ECO</text>
+                </>
+            )}
+
+            {/* Resource Map Mode visualization: Dynamic Pins and Areas */}
+            {isResourceMap && Object.entries(resourceLocations).map(([resourceKey, locations]) => {
+                if (activeResources.includes(resourceKey)) {
+                    return locations.map((loc, index) => {
+                        const colorClass = resourceColors[resourceKey].replace('text-', 'fill-');
+                        
+                        // Render Parks as filled areas
+                        if (resourceKey === 'Parks') {
+                            return (
+                                <circle 
+                                    key={`${resourceKey}-${index}`} 
+                                    cx={loc.x} 
+                                    cy={loc.y} 
+                                    r={loc.r} 
+                                    fill="currentColor"
+                                    className={`${colorClass} opacity-70`}
+                                />
+                            );
+                        } 
+                        
+                        // Render other resources as pins (standardized look)
+                        return (
+                            <g key={`${resourceKey}-${index}`} transform={`translate(${loc.x}, ${loc.y})`}>
+                                {/* Pin Base (circle) and shadow for visual pop */}
+                                <circle r="2.5" className={`${colorClass} shadow-md`} />
+                                {/* Pin Point (triangle/path) */}
+                                <path 
+                                    d="M 0 2.5 L -2 7 L 2 7 Z" 
+                                    fill="white" 
+                                    stroke="currentColor" 
+                                    strokeWidth="0.5" 
+                                    className={colorClass}
+                                />
+                                {/* Label/Icon for context, centered on pin */}
+                                <text x="0" y="0.5" fontSize="2.5" fill="white" textAnchor="middle" alignmentBaseline="middle" className="font-sans font-extrabold">{resourceKey.charAt(0)}</text>
+                            </g>
+                        );
+                    });
+                }
+                return null;
+            })}
+        </svg>
+    );
+};
+// --- END MAP VISUALIZATION COMPONENT ---
+
+// --- NEW COMPONENT: TASK DETAILS/VERIFICATION (Placeholder) ---
+const TaskDetailsScreen = ({ setView, taskId }) => {
+    // Mock fetch for task details (using mock data from below)
+    const task = tasksData.find(t => t.id === taskId);
+    if (!task) {
+        return <div className="p-5">Task not found.</div>;
+    }
+    
+    // Determine button state
+    const buttonText = task.progress > 0 ? "Complete Quest (Verify)" : "Start Quest";
+    const buttonColor = task.progress > 0 ? "bg-cyan-600 hover:bg-cyan-700" : "bg-emerald-600 hover:bg-emerald-700";
+
+    return (
+        <div className="p-5 space-y-6">
+            <Header title="Quest Details" setView={setView} mode="Tasks" targetView="all_tasks" />
+            
+            <div className="bg-white p-5 rounded-2xl shadow-xl border border-gray-100 space-y-4">
+                <h3 className="text-2xl font-extrabold text-gray-800 flex items-center">
+                    <Bolt className="w-6 h-6 mr-2 text-yellow-500" />
+                    {task.name}
+                </h3>
+                
+                <TaskDifficultyBadge difficulty={task.difficulty} />
+
+                <div className="flex justify-between items-center border-t pt-4 border-gray-100">
+                    <p className="text-lg font-bold text-emerald-700">{task.tokens} T$ Reward</p>
+                    <p className="text-sm font-medium text-gray-500">Category: {task.category}</p>
+                </div>
+
+                <p className="text-sm text-gray-600 leading-relaxed border-b pb-4">
+                    **Mission:** This task requires a **{task.questType}** commitment. Your goal is to **{task.name.toLowerCase()}**. This directly reduces your carbon footprint by preventing unnecessary emissions.
+                </p>
+
+                {/* Verification Placeholder */}
+                <div className="bg-gray-50 p-4 rounded-xl shadow-inner space-y-3">
+                    <p className="font-semibold text-gray-800">Verification Mechanism:</p>
+                    <p className="text-sm text-gray-600">
+                        For this **{task.questType}**, verification requires a combination of **Photo Upload** (to confirm the action or location) and a quick **Location Check** (if applicable).
+                    </p>
+                    <button className="w-full py-2 bg-blue-100 text-blue-600 font-semibold rounded-lg hover:bg-blue-200 transition duration-150">
+                        View Verification Checklist
+                    </button>
+                </div>
+
+                <div className="pt-2">
+                    <p className="text-sm font-medium text-gray-700 mb-1">Current Progress: {task.progress}%</p>
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-emerald-500 transition-all duration-500"
+                            style={{ width: `${Math.min(task.progress, 100)}%` }}
+                        ></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Action Button */}
+            <button
+                onClick={() => console.log(`Simulating action for Task ID ${taskId}: ${buttonText}`)}
+                className={`w-full py-4 text-white font-extrabold rounded-xl shadow-lg transition duration-150 ${buttonColor} shadow-emerald-400/50`}
+            >
+                {buttonText}
+            </button>
+        </div>
+    );
+};
+// --- END TASK DETAILS/VERIFICATION COMPONENT ---
+
+// --- NEW COMPONENT: DIFFICULTY BADGE ---
+const TaskDifficultyBadge = ({ difficulty }) => {
+    let colorClass = 'bg-gray-200 text-gray-700';
+    let label = difficulty;
+
+    switch (difficulty) {
+        case 'Easy':
+            colorClass = 'bg-green-100 text-green-700';
+            break;
+        case 'Medium':
+            colorClass = 'bg-yellow-100 text-yellow-700';
+            break;
+        case 'Hard':
+            colorClass = 'bg-red-100 text-red-700';
+            break;
+        case 'Epic':
+            colorClass = 'bg-purple-100 text-purple-700';
+            break;
+    }
+
+    return (
+        <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full shadow-sm ${colorClass}`}>
+            {label} Quest
+        </span>
+    );
+};
+// --- END DIFFICULTY BADGE COMPONENT ---
+
+
+// --- NEW COMPONENT: LEVEL PROGRESSION ---
+const LevelProgressionScreen = ({ setView, currentLevel, currentTokens }) => {
+    // Define the ordered levels and required tokens
+    // NEW VALUES (+200% or *3): 0, 1500, 4500, 15000, 45000
+    const levels = [
+        { name: "Seedling", requiredTokens: 0, description: "The starting point. Focus on basic daily tasks." },
+        { name: "Bush", requiredTokens: 1500, description: "You are forming new habits. Unlock new badge categories." },
+        { name: "Tree", requiredTokens: 4500, description: "Established contributor. Access high-reward, complex tasks." },
+        { name: "Guardian", requiredTokens: 15000, description: "Mastery of environmental action. Higher influence on community projects." },
+        { name: "Master Sustainable", requiredTokens: 45000, description: "Peak achievement. Recognized as a community leader." },
+    ];
+
+    const currentLevelIndex = levels.findIndex(level => level.name === currentLevel);
+
+    const LevelItem = ({ level, index, isCurrent, isAchieved }) => {
+        const achievedClass = isAchieved ? 'text-emerald-600 border-emerald-400' : 'text-gray-400 border-gray-300';
+        const currentClass = isCurrent ? 'bg-emerald-50 shadow-lg border-2' : 'bg-white border';
+        
+        const nextLevel = levels[index + 1];
+        const tokensToNext = nextLevel ? nextLevel.requiredTokens - currentTokens : 0;
+        const progressPercentage = index === 0 
+            ? Math.min(100, (currentTokens / levels[1].requiredTokens) * 100) 
+            : (isCurrent && nextLevel) 
+                ? Math.min(100, ((currentTokens - level.requiredTokens) / (nextLevel.requiredTokens - level.requiredTokens)) * 100)
+                : isAchieved ? 100 : 0;
+
+        return (
+            <div className={`p-4 rounded-xl mb-4 ${currentClass} ${achievedClass}`}>
+                <div className="flex justify-between items-start">
+                    <div className='flex items-center'>
+                        <Award className={`w-6 h-6 mr-3 ${isAchieved ? 'fill-emerald-200' : 'fill-gray-200'}`} />
+                        <div>
+                            <p className={`text-lg font-bold ${isCurrent ? 'text-emerald-800' : 'text-gray-700'}`}>{level.name} {isCurrent && '(Current)'}</p>
+                            <p className="text-xs text-gray-500">{level.description}</p>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <p className={`text-sm font-semibold ${isAchieved ? 'text-emerald-700' : 'text-gray-500'}`}>
+                            {level.requiredTokens.toLocaleString('en-US')} T$
+                        </p>
+                        <p className="text-xs text-gray-400">Required</p>
+                    </div>
+                </div>
+
+                {isCurrent && nextLevel && (
+                    <div className="mt-4">
+                        <p className="text-sm font-medium text-gray-700 mb-1">
+                            Progress to {nextLevel.name}: {progressPercentage.toFixed(1)}%
+                        </p>
+                         <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-emerald-500 transition-all duration-700"
+                                style={{ width: `${progressPercentage}%` }}
+                            ></div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                            Need {tokensToNext.toLocaleString('en-US')} more T$ to reach {nextLevel.name}.
+                        </p>
+                    </div>
+                )}
+                
+                {!nextLevel && isCurrent && (
+                    <p className="text-sm font-semibold text-emerald-700 mt-4">Congratulations! You have reached the highest rank.</p>
+                )}
+            </div>
+        );
+    };
+
+    return (
+        <div className="p-5 space-y-6">
+            <Header title="Level Progression" setView={setView} mode="Awards" targetView="dashboard" />
+
+            <h3 className="text-xl font-bold text-gray-800 pt-2">Your Impact Journey</h3>
+            <p className="text-sm text-gray-600">Earn Green Tokens (T$) by completing tasks to advance through the levels and unlock new app features.</p>
+            
+            <div className="pt-2">
+                {levels.map((level, index) => (
+                    <LevelItem
+                        key={level.name}
+                        level={level}
+                        index={index}
+                        isCurrent={level.name === currentLevel}
+                        isAchieved={index <= currentLevelIndex}
+                    />
+                ))}
+            </div>
+
+            <button 
+                onClick={() => setView('dashboard')}
+                className="w-full py-3 mt-4 bg-gray-200 text-gray-700 font-bold rounded-xl shadow-md hover:bg-gray-300 transition duration-150 flex items-center justify-center"
+            >
+                Return to Dashboard
+            </button>
+        </div>
+    );
+};
+// --- END LEVEL PROGRESSION COMPONENT ---
+
+
+// --- NEW COMPONENT: LEADERBOARD ---
+const CompetitionBar = ({ label, userValue, avgValue, unit, isAhead }) => {
+    // Calculate percentages for the bar graph. We use Math.max to scale correctly.
+    const maxVal = Math.max(userValue, avgValue, 1); // Ensure max is at least 1 to avoid division by zero
+    const userPercent = (userValue / maxVal) * 100;
+    const avgPercent = (avgValue / maxVal) * 100;
+    
+    // --- VALUE FORMATTING (Use tokens for comparison, not USD value) ---
+    const formatValue = (value) => {
+        // Only format to 1 decimal place for Tasks, 0 for Tokens/T$
+        return unit === 'Tasks' ? value.toFixed(1) : value.toLocaleString('en-US', { minimumFractionDigits: 0 });
+    }
+
+    return (
+        <div>
+            <div className="flex justify-between text-xs font-medium mb-1">
+                <span>{label}</span>
+                <span className={isAhead ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}>
+                    {isAhead ? 'AHEAD' : 'CATCH UP!'}
+                </span>
+            </div>
+            
+            <div className="h-4 w-full bg-gray-200 rounded-full flex items-center relative overflow-hidden">
+                {/* User Bar */}
+                <div 
+                    style={{ width: `${userPercent}%` }} 
+                    className={`h-full ${isAhead ? 'bg-emerald-500' : 'bg-red-400'} rounded-full transition-all duration-500 flex items-center justify-end pr-1 z-10`}
+                >
+                    <span className="text-white text-xs font-bold leading-none">{formatValue(userValue)}</span>
+                </div>
+
+                {/* Average Marker/Bar */}
+                 <div 
+                    style={{ left: `${avgPercent}%` }} 
+                    className="absolute h-full w-0.5 bg-gray-700 shadow-xl z-20"
+                    title={`Average: ${formatValue(avgValue)}`}
+                ></div>
+
+                 {/* Display average label if user is significantly behind */}
+                 {userPercent < avgPercent * 0.7 && (
+                      <span className="text-gray-700 text-xs font-medium leading-none absolute left-1/2 transform -translate-x-1/2">Avg: {formatValue(avgValue)}</span>
+                 )}
+            </div>
+        </div>
+    );
+};
+
+const FriendActivityItem = ({ friend }) => (
+    <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border border-gray-100">
+        <div className="flex items-center">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                <Users className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+                <p className="font-semibold text-gray-800">{friend.name.split(' ')[0]}</p>
+                <p className="text-xs text-gray-500">{friend.level}</p>
+            </div>
+        </div>
+        <div className="text-right">
+            <p className="text-sm font-bold text-emerald-700">{friend.tokens} T$</p>
+            <p className="text-xs text-gray-500">{friend.tasks} Quests this week</p>
+        </div>
+    </div>
+);
+
+const LeaderboardItem = ({ user, index, isCurrentUser }) => { // Removed momentum prop
+    
+    // Default style
+    let rankDisplay = <div className="text-xl font-extrabold w-8 text-center text-gray-500">{user.rank}</div>;
+    const bgColor = isCurrentUser ? 'bg-emerald-100/70 shadow-lg' : index < 3 ? 'bg-yellow-50/70' : 'bg-white';
+    const textColor = isCurrentUser ? 'text-emerald-800' : 'text-gray-800';
+    
+    // Apply special styling for top 3
+    if (user.rank <= 3) {
+        rankDisplay = <RankMedalSVG rank={user.rank} />;
+    }
+
+    // Calculate USD value for display
+    const usdValue = user.tokens * TOKEN_VALUE_USD;
+    
+    // NOTE: Momentum logic and display removed as requested
+    const momentumColor = 'text-gray-500'; // Set to default color
+
+    return (
+        <div className={`flex items-center justify-between py-3 px-2 rounded-lg transition duration-200 ${bgColor} ${isCurrentUser ? 'border-2 border-emerald-600 shadow-emerald-300/50' : 'border-b border-gray-200 last:border-b-0'}`}>
+            <div className="flex items-center space-x-3">
+                {/* Rank Display (Medal for Top 3) */}
+                {rankDisplay}
+                
+                <div>
+                    <p className={`font-semibold ${textColor}`}>
+                        {user.name} {isCurrentUser && <span className="text-xs font-normal text-emerald-600">(You)</span>}
+                    </p>
+                    {/* Level Icon and Name */}
+                    <LevelIcon level={user.level} />
+                </div>
+            </div>
+            <div className="text-right flex flex-col items-end">
+                {/* Removed: Momentum Indicator */}
+                {/* <span className={`text-xs font-semibold flex items-center mb-1 ${momentumColor}`}>
+                    {momentumIcon} {momentumText}
+                </span> */}
+
+                {/* Display TOKEN Value */}
+                <p className="text-lg font-bold text-emerald-700">{user.tokens.toLocaleString('en-US', { minimumFractionDigits: 2 })} T$</p>
+                <p className="text-xs text-gray-500">Value: $ {usdValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+            </div>
+        </div>
+    );
+};
+
+
+const LeaderboardScreen = ({ setView, tokens }) => {
+    // Mock Data and Logic
+    const currentUserTokens = tokens;
+    const currentUserTasks = 3.5; // Mock value for tasks completed this week
+
+    const friendsData = [
+        { id: 101, name: "Alex (Water Saver)", tokens: 350, tasks: 5, level: 'Seedling' },
+        { id: 102, name: "Bia (Bike Commuter)", tokens: 700, tasks: 12, level: 'Tree' },
+        { id: 103, name: "Chris (Recycler)", tokens: 480, tasks: 8, level: 'Bush' },
+    ];
+    
+    // Leaderboard Data: Removed 'momentum' field from data objects
+    const leaderboardData = [
+        { rank: 1, name: "Eco Warrior 99", tokens: 8500, level: 'Master Sustainable' },
+        { rank: 2, name: "Green Guru", tokens: 7800, level: 'Master Sustainable' },
+        { rank: 3, name: "Leafy Llama", tokens: 6200, level: 'Guardian' },
+        { rank: 153, name: "Carbon Crusher", tokens: 1300, level: 'Tree' }, // Rival (immediately above current user)
+        { rank: 154, name: "Simulated User 12345", tokens: currentUserTokens, level: 'Tree' }, // Dynamic User Data and mock rank
+        { rank: 155, name: "Carbon Cutter", tokens: 950, level: 'Seedling' },
+    ];
+    
+    // Find the Current User and Rival (for targeted challenge)
+    const currentUser = leaderboardData.find(u => u.name.includes("Simulated User"));
+    const rival = leaderboardData.find(u => u.rank === currentUser.rank - 1);
+
+    // Determine Status Tier
+    let statusTier = "The Green 500";
+    if (currentUser.rank <= 10) statusTier = "Eco Elite";
+    else if (currentUser.rank <= 50) statusTier = "Carbon Champion";
+
+    
+    // --- Comparison Metrics ---
+    const totalFriendTokens = friendsData.reduce((sum, friend) => sum + friend.tokens, 0);
+    const avgFriendTokens = totalFriendTokens / friendsData.length;
+    const avgFriendTasks = friendsData.reduce((sum, friend) => sum + friend.tasks, 0) / friendsData.length;
+    
+    const tokensAhead = currentUserTokens >= avgFriendTokens;
+    const tasksAhead = currentUserTasks >= avgFriendTasks;
+
+    return (
+        <div className="p-5 space-y-6">
+            <Header title="Community Ranking" setView={setView} mode="Users" targetView="dashboard" />
+
+            {/* Status Tier: Removed momentum display */}
+             <section className="bg-emerald-600 p-4 rounded-2xl shadow-xl border border-gray-100 text-white flex justify-between items-center">
+                <div>
+                    <p className="text-sm font-light opacity-90">Your Current Rank</p>
+                    <h3 className="text-xl font-extrabold mt-1">{statusTier}</h3>
+                </div>
+                {/* Placeholder added for balance to keep header clean */}
+                <div className="text-right">
+                    <p className="text-xs font-light opacity-90">Global Rank</p>
+                    <span className={`text-lg font-bold text-white`}>
+                        #{currentUser.rank}
+                    </span>
+                </div>
+            </section>
+            
+            {/* Rival Callout */}
+            {rival && (
+                <section className="p-3 bg-red-100 rounded-xl border border-red-400 shadow-md">
+                    <p className="text-xs font-semibold text-red-800 flex items-center mb-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mr-2 text-red-600"><path d="M12 2a10 10 0 0 0 0 20 10 10 0 0 0 0-20z"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg>
+                        **RIVAL TARGETED!**
+                    </p>
+                    <div className="flex justify-between items-center">
+                        <p className="text-sm text-gray-700">
+                            **{rival.name}** is ranked #{rival.rank}. You need **{(rival.tokens - currentUserTokens).toFixed(2)} T$** to **OVERTAKE** their spot!
+                        </p>
+                        <button className="text-xs font-bold text-red-600 shrink-0 ml-3 hover:text-red-700">
+                            View Rival Profile
+                        </button>
+                    </div>
+                </section>
+            )}
+
+
+            {/* Friends Competition Section */}
+            <section className="p-4 bg-white rounded-2xl shadow-xl border-2 border-emerald-300">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center mb-4">
+                    <Users className="w-5 h-5 mr-2 text-emerald-600" />
+                    Friends Competition
+                </h3>
+                
+                {/* Comparison Card */}
+                <div className="bg-gray-50 p-4 rounded-xl shadow-inner mb-4 space-y-3">
+                    <p className="text-sm font-semibold text-gray-700 border-b border-gray-200 pb-2">Your Impact vs. Friends' Average</p>
+                    
+                    {/* Token Comparison */}
+                    <CompetitionBar 
+                        label="Tokens Earned (Lifetime)"
+                        userValue={currentUserTokens}
+                        avgValue={avgFriendTokens}
+                        unit="Tokens" // Use Tokens for comparison logic
+                        isAhead={tokensAhead}
+                    />
+
+                    {/* Task Comparison */}
+                     <CompetitionBar 
+                        label="Quests Completed (Weekly)"
+                        userValue={currentUserTasks}
+                        avgValue={avgFriendTasks}
+                        unit="Tasks"
+                        isAhead={tasksAhead}
+                    />
+                </div>
+
+                {/* Friends Activity List */}
+                <h4 className="text-base font-semibold text-gray-800 mb-2">Friends Activity</h4>
+                <div className="space-y-2">
+                    {friendsData.map((friend) => (
+                        <FriendActivityItem key={friend.id} friend={friend} />
+                    ))}
+                    <button className="w-full py-2 text-center text-sm font-semibold text-blue-600 hover:text-blue-700 transition duration-150 mt-2">
+                        View All Friends & Invite
+                    </button>
+                </div>
+            </section>
+
+
+            {/* Global Leaderboard Section */}
+            <section>
+                <h3 className="text-xl font-bold text-gray-800 mb-3">Global Ranking</h3>
+                <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100 divide-y divide-gray-100">
+                    {/* Display top 3 always, and ensure the current user is visible */}
+                    {leaderboardData.map((user) => (
+                        <LeaderboardItem 
+                            key={user.name} 
+                            user={user} 
+                            index={user.rank - 1} 
+                            isCurrentUser={user.name.includes("Simulated User")} 
+                        />
+                    ))}
+                    <button className="w-full py-2 text-center text-sm font-semibold text-gray-600 hover:text-gray-700 transition duration-150 mt-2">
+                        Load More Ranks
+                    </button>
+                </div>
+            </section>
+        </div>
+    );
+};
+// --- END LEADERBOARD COMPONENT ---
+
+
+// --- COMPONENT FOR PERSONAL STATISTICS ---
+const PersonalStatisticsScreen = ({ setView, tokens }) => {
+    // Mock data for personal stats
+    const tokensThisMonth = 450.00;
+    const totalTokensLifetime = tokens; 
+
+    // Calculate USD values
+    const totalUSDValue = totalTokensLifetime * TOKEN_VALUE_USD;
+    const monthlyUSDValue = tokensThisMonth * TOKEN_VALUE_USD;
+
+    return (
+        <div className="p-5 space-y-6">
+            <Header title="My Personal Impact" setView={setView} mode="Stats" targetView="dashboard" />
+            
+            <h3 className="text-lg font-bold text-gray-800 pt-2">Token Summary</h3>
+            <div className="grid grid-cols-2 gap-4">
+                <CardIndicator 
+                    title="Lifetime T$ Earned" 
+                    value={totalTokensLifetime.toLocaleString('en-US', { minimumFractionDigits: 2 }) + ' T$'} 
+                    color="bg-emerald-100" 
+                    valueClass="text-emerald-800"
+                />
+                <CardIndicator 
+                    title="T$ Earned This Month" 
+                    value={tokensThisMonth.toLocaleString('en-US', { minimumFractionDigits: 2 }) + ' T$'} 
+                    color="bg-blue-100" 
+                    valueClass="text-blue-800"
+                />
+                 {/* Display USD amounts below the T$ value */}
+                 <div className="col-span-2 text-sm text-gray-500 font-medium">
+                    <p>Total USD Lifetime Value: $ {totalUSDValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                    <p>Total USD Monthly Value: $ {monthlyUSDValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                 </div>
+            </div>
+
+            <h3 className="text-lg font-bold text-gray-800 pt-2">Weekly Quest Completion Growth</h3>
+            <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100">
+                <ChartPlaceholder 
+                    title="Quests Completed / Week" 
+                    color="border-emerald-500" 
+                    height="h-40" 
+                    content="Line Chart: Weekly Growth in Completed Tasks"
+                    type="line" // Use line chart for growth trend
+                />
+                <p className="text-xs text-gray-600 mt-2">Visualization of your quest completion trend over the last 4 weeks.</p>
+            </div>
+            
+            <button 
+                onClick={() => setView('dashboard')}
+                className="w-full py-3 mt-4 bg-gray-200 text-gray-700 font-bold rounded-xl shadow-md hover:bg-gray-300 transition duration-150 flex items-center justify-center"
+            >
+                Return to Dashboard
+            </button>
+        </div>
+    );
+};
+// --- END PERSONAL STATISTICS COMPONENT ---
+
+
+// Component for the Statistics screen (Community/Urban Planner Stats)
+const StatisticsScreen = ({ setView }) => (
+    <div className="p-5 space-y-6">
+        <Header title="Community Impact Statistics" setView={setView} mode="Stats" targetView="urban_planner_view" />
+        
+        <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100 space-y-4">
+            <h3 className="text-xl font-extrabold text-emerald-700">Your Ecological Footprint</h3>
+            <p className="text-gray-600 text-sm">Review your consolidated environmental impact metrics and how your actions translate into tangible results.</p>
+
+            <ChartPlaceholder 
+                title="CO2e Reduction (Monthly Trend)" 
+                color="border-emerald-500" 
+                content="CO2e Reduction Line Chart" 
+                type="line" // Line chart for trend
+            />
+            <ChartPlaceholder 
+                title="Water Saved (Weekly Average)" 
+                color="border-cyan-500" 
+                content="Water Saved Bar Chart" 
+                type="bar" // Bar chart for comparison/average
+            />
+            <ChartPlaceholder 
+                title="Energy Savings (KWh)" 
+                color="border-yellow-500" 
+                content="Energy Savings Bar Chart" 
+                type="bar" // Bar chart for comparison/savings
+            />
+            
+            <button 
+                onClick={() => setView('dashboard')}
+                className="w-full py-3 mt-4 bg-gray-200 text-gray-700 font-bold rounded-xl shadow-md hover:bg-gray-300 transition duration-150 flex items-center justify-center"
+            >
+                Return to Dashboard
+            </button>
+        </div>
+    </div>
+);
+
+// Component for the Resource Map screen
+const ResourceMapScreen = ({ setView }) => {
+    // State to toggle resource visibility on the map
+    const [activeResources, setActiveResources] = useState(['Recycling Bins']);
+
+    const toggleResource = (resource) => {
+        setActiveResources(prev =>
+            prev.includes(resource)
+                ? prev.filter(r => r !== resource)
+                : [...prev, resource]
+        );
+    };
+
+    const ResourceButton = ({ label, icon: Icon, resourceKey }) => {
+        const isActive = activeResources.includes(resourceKey);
+        const baseClasses = "flex flex-col items-center p-2 rounded-xl transition duration-150 shadow-md";
+        const activeClasses = "bg-emerald-600 text-white shadow-emerald-400/50";
+        const inactiveClasses = "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200";
+
+        return (
+            <button
+                onClick={() => toggleResource(resourceKey)}
+                className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
+            >
+                <Icon className="w-6 h-6" />
+                <span className="text-xs font-medium mt-1 text-center leading-tight">{label}</span>
+            </button>
+        );
+    };
+
+    return (
+        <div className="p-5 space-y-6">
+            <Header title="Community Resources Map" setView={setView} mode="Map" targetView="all_tasks" />
+
+            {/* Map Visualization - Now Dynamic */}
+            <div className="h-64 rounded-xl shadow-lg border-2 border-gray-300 flex items-center justify-center relative overflow-hidden">
+                <MapVisualizationSVG isResourceMap={true} activeResources={activeResources} />
+                
+                {/* Overlay text if no layers are active */}
+                {activeResources.length === 0 && (
+                     <p className="absolute text-gray-700 font-medium z-10 p-4 bg-white/70 rounded-xl shadow-inner border border-gray-200">Select a layer below to display resources.</p>
+                )}
+            </div>
+
+            <h3 className="text-lg font-bold text-gray-800 pt-2">Toggle Map Layers</h3>
+            <div className="grid grid-cols-4 gap-3">
+                <ResourceButton label="Recycling Bins" icon={Recycle} resourceKey="Recycling Bins" />
+                <ResourceButton label="Public Transit" icon={Bus} resourceKey="Public Transit" />
+                <ResourceButton label="Bike Lanes" icon={Bike} resourceKey="Bicycle Lanes" />
+                <ResourceButton label="Parks" icon={TreePine} resourceKey="Parks" />
+            </div>
+
+            <p className="text-sm text-gray-600 pt-4">Use this map to locate points of interest required for quest completion.</p>
+        </div>
+    );
+};
+
+// Component for the All Tasks screen
+const AllTasksScreen = ({ setView }) => {
+    // New state for task category filtering
+    const [selectedCategory, setSelectedCategory] = useState('All'); // 'All' is default
+
+    // Categories list for the tabs
+    const categories = ['All', 'Energy', 'Water', 'Transport', 'Consumption'];
+    
+    // Filtered list based on selected category
+    const filteredTasks = tasksData.filter(task => 
+        selectedCategory === 'All' || task.category === selectedCategory
+    );
+
+    return (
+        <div className="p-5 space-y-6">
+            <Header title="All Available Quests" setView={setView} mode="List" />
+
+            {/* Navigation to Resource Map */}
+            <button
+                onClick={() => setView('resource_map')}
+                className="w-full py-3 bg-emerald-500 text-white font-bold rounded-xl shadow-md hover:bg-emerald-600 transition duration-150 flex items-center justify-center shadow-emerald-400/50"
+            >
+                <Map className="w-5 h-5 mr-2"/> Find Resources on Map
+            </button>
+
+            {/* Task Categories Tabs - Now functional */}
+            <div className="flex justify-between bg-gray-100 p-1.5 rounded-xl overflow-x-auto whitespace-nowrap">
+                {categories.map(cat => (
+                    <button 
+                        key={cat} 
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`px-3 py-2 text-sm font-medium rounded-lg transition duration-150
+                            ${selectedCategory === cat 
+                                ? 'bg-white text-emerald-700 shadow-md' 
+                                : 'text-gray-700 hover:bg-gray-200'
+                            }`
+                        }
+                    >
+                        {cat}
+                    </button>
+                ))}
+            </div>
+
+            {/* Detailed Task List */}
+            <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100 divide-y divide-gray-100">
+                {filteredTasks.length > 0 ? (
+                    filteredTasks.map(task => (
+                        <TaskItem key={task.id} task={task} showAction setView={setView} />
+                    ))
+                ) : (
+                    <p className="text-center text-gray-500 py-4">No quests available in the "{selectedCategory}" category.</p>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
+// Component for the Urban Planner Data View screen
+const UrbanPlannerViewData = ({ setView, userId }) => (
+  <div className="p-5 space-y-6">
+    <Header title="Urban Planner" setView={setView} mode="Data" />
+
+    {/* NEW Section: Overall Data Visualization Snapshot */}
+    <div className="bg-white p-4 rounded-2xl shadow-xl border-2 border-emerald-400">
+        <h3 className="text-base font-bold text-gray-800 mb-2 flex items-center">
+            <BarChart3 className="w-5 h-5 mr-2 text-emerald-600"/> 
+            City Health Score Snapshot
+        </h3>
+        <ChartPlaceholder 
+            title="Composite Index Trend (Last 12 Mo)" 
+            color="border-blue-500" 
+            height="h-32" 
+            content="Large Generic Trend Line Chart"
+            type="line" // Use line chart
+        />
+        <p className="text-xs text-gray-600 mt-2">This metric averages all key environmental data points for a single view of urban health.</p>
+    </div>
+    {/* END NEW Section */}
+
+    {/* Key Indicators */}
+    <div className="grid grid-cols-2 gap-4">
+      <CardIndicator title="Green Area" value="3 m²/cap" color="bg-green-100" valueClass="text-emerald-800" />
+      <CardIndicator title="Pop. Density" value="500 cap/km²" color="bg-green-100" valueClass="text-emerald-800" />
+    </div>
+
+    {/* Quality Charts (Simulation) */}
+    <h3 className="text-lg font-bold text-gray-800 pt-2">Quality Indices</h3>
+    <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100 space-y-6">
+      <ChartPlaceholder 
+        title="AQI (Air Quality Index)" 
+        color="border-emerald-500" 
+        content="Line Chart Simulation (2020-2024)"
+        type="line" // Use line chart
+      />
+      <ChartPlaceholder 
+        title="WQI (Water Quality Index)" 
+        color="border-cyan-500" 
+        content="Line Chart Simulation (2020-2024)"
+        type="line" // Use line chart
+      />
+    </div>
+    
+    {/* Button to View Detailed Statistics */}
+    <button
+        onClick={() => setView('statistics')}
+        className="w-full py-3 mt-4 bg-cyan-600 text-white font-bold rounded-xl shadow-md hover:bg-cyan-700 transition duration-150 flex items-center justify-center shadow-cyan-400/50"
+    >
+        <BarChart3 className="w-5 h-5 mr-2"/> View Detailed Statistics
+    </button>
+
+    {/* Button to Switch to Edit Mode */}
+    <button
+        onClick={() => setView('urban_planner_edit')}
+        className="w-full py-3 mt-4 bg-emerald-600 text-white font-bold rounded-xl shadow-md hover:bg-emerald-700 transition duration-150 flex items-center justify-center"
+    >
+        <Settings className="w-5 h-5 mr-2"/> Enter Edit Mode
+    </button>
+  </div>
+);
+
+// Component for the Urban Planner Edit Mode screen
+const UrbanPlannerEditMode = ({ setView, userId }) => (
+    <div className="p-5 space-y-6">
+        <Header title="Urban Planner" setView={setView} mode="Edit" />
+
+        {/* 3D/Map Visualization Simulation - Now uses SVG Map */}
+        <div className="h-40 rounded-xl shadow-lg border-2 border-gray-300 flex items-center justify-center overflow-hidden">
+            <MapVisualizationSVG isResourceMap={false} />
+        </div>
+
+        <h3 className="text-lg font-bold text-gray-800 pt-2">Editing Tools</h3>
+        <div className="grid grid-cols-3 gap-4 p-4 bg-gray-100 rounded-xl shadow-inner">
+            <EditAction icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/><path d="M10 9h2l-2 5"/></svg>} label="Add School" />
+            <EditAction icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 6V4c0-1.1.9-2 2-2h4a2 2 0 0 1 2 2v2"/><path d="M12 22v-4"/><path d="M17 18H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2z"/><path d="M15 13H9"/></svg>} label="Add Public Transit" />
+            <EditAction icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5-2-1.5-4-2.5-4-2.5S9 9 7 10.5C5 12.1 4 14 4 15a7 7 0 0 0 7 7z"/><path d="M9 15h6"/><path d="M12 18V12"/></svg>} label="Add Park" />
+        </div>
+
+        <h3 className="text-lg font-bold text-gray-800 pt-2">Key Reports</h3>
+        <div className="grid grid-cols-3 gap-4">
+            <ReportButton icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>} label="Population Growth" />
+            <ReportButton icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M12 16a4 4 0 0 1-4 4"/></svg>} label="Happiness Report" />
+            <ReportButton icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 11.5V14l4 4V7.5"/><path d="M15 16.5V9l-4-4v13.5"/></svg>} label="Water Demand" />
+        </div>
+        
+        {/* Button to Switch to Data View */}
+        <button
+            onClick={() => setView('urban_planner_view')}
+            className="w-full py-3 mt-4 bg-gray-200 text-gray-700 font-bold rounded-xl shadow-md hover:bg-gray-300 transition duration-150 flex items-center justify-center"
+        >
+            <BarChart3 className="w-5 h-5 mr-2"/> Return to Data View
+        </button>
+    </div>
+);
+
+// Generic Header Component with Back Button
+const Header = ({ title, setView, mode, targetView = 'dashboard' }) => (
+    <header className="p-0 bg-white border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
+        <button
+            onClick={() => setView(targetView)}
+            className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition duration-150"
+            title={`Return to ${targetView === 'dashboard' ? 'Dashboard' : title}`}
+        >
+            <ChevronLeft className="w-6 h-6 text-gray-700" />
+        </button>
+        <h1 className="text-xl font-bold text-gray-900 flex-1 text-center pr-10">{title}</h1>
+        {mode === 'Data' && (
+            <div className="p-2 px-4 bg-emerald-100 text-emerald-800 rounded-full font-semibold text-xs shadow-md">
+                Data View
+            </div>
+        )}
+        {mode === 'Edit' && (
+            <div className="p-2 px-4 bg-yellow-100 text-yellow-800 rounded-full font-semibold text-xs shadow-md">
+                Edit Mode
+            </div>
+        )}
+         {(mode === 'Tasks' || mode === 'Map' || mode === 'Stats' || mode === 'Users' || mode === 'Awards' || mode === 'Wallet') && (
+            <div className="p-2 px-4 bg-blue-100 text-blue-800 rounded-full font-semibold text-xs shadow-md">
+                {mode === 'Map' ? 'Map View' : mode === 'Stats' ? 'Analytics' : mode === 'Users' ? 'Social' : mode === 'Awards' ? 'Gamification' : mode === 'Wallet' ? 'Finance' : 'Task List'}
+            </div>
+        )}
+    </header>
+);
+
+
+// Updated CardIndicator to accept dynamic valueClass for text color flexibility
+const CardIndicator = ({ title, value, color, valueClass = 'text-gray-900' }) => (
+    <div className={`${color} p-4 rounded-xl shadow-sm border border-gray-200`}>
+        <p className="text-xs text-gray-600 font-medium">{title}</p>
+        <p className={`text-xl font-extrabold ${valueClass} mt-1`}>{value}</p>
+    </div>
+);
+
+const EditAction = ({ icon, label }) => (
+    <button className="flex flex-col items-center p-3 bg-white rounded-xl shadow-md border border-gray-200 transition duration-150 hover:bg-emerald-50">
+        <div className="p-2 bg-emerald-100 rounded-full mb-1">
+            {React.cloneElement(icon, { className: "w-5 h-5 text-emerald-600" })}
+        </div>
+        <span className="text-xs text-gray-700 font-medium text-center leading-tight">{label}</span>
+    </button>
+);
+
+const ReportButton = ({ icon, label }) => (
+    <button className="flex flex-col items-center p-3 bg-white rounded-xl shadow-md border border-gray-200 transition duration-150 hover:bg-emerald-50">
+        <div className="p-2 bg-gray-100 rounded-full mb-1">
+            {React.cloneElement(icon, { className: "w-5 h-5 text-gray-600" })}
+        </div>
+        <span className="text-xs text-gray-700 font-medium text-center leading-tight">{label}</span>
+    </button>
+);
+
+// Mock Data
+// Task data updated with difficulty and questType
+const tasksData = [
+  { id: 1, name: "Use public transit/bike for 10km.", category: "Transport", progress: 80, tokens: 50, difficulty: "Medium", questType: "Daily Quest" },
+  { id: 2, name: "Take showers under 5 minutes for 3 consecutive days.", category: "Water", progress: 40, tokens: 20, difficulty: "Easy", questType: "Daily Quest" },
+  { id: 3, name: "Compost organic waste for one week.", category: "Consumption", progress: 10, tokens: 100, difficulty: "Hard", questType: "Epic Quest" },
+  { id: 4, name: "Turn off standby power for 48h.", category: "Energy", progress: 0, tokens: 30, difficulty: "Medium", questType: "Daily Quest" },
+  { id: 5, name: "Purchase 3 items from a local thrift shop.", category: "Consumption", progress: 0, tokens: 60, difficulty: "Easy", questType: "Daily Quest" },
+  { id: 6, name: "Recycle 5 items at a designated bin.", category: "Consumption", progress: 100, tokens: 25, difficulty: "Easy", questType: "Daily Quest" },
+  { id: 7, name: "Reduce hot water use by 10% this week.", category: "Water", progress: 0, tokens: 45, difficulty: "Hard", questType: "Epic Quest" },
+  { id: 8, name: "Walk or cycle for all errands under 1km.", category: "Transport", progress: 0, tokens: 35, difficulty: "Medium", questType: "Daily Quest" },
+];
+
+const NewsItem = ({ title, content }) => (
+  <div className="bg-emerald-800/10 p-4 rounded-xl border border-emerald-700/20 shadow-inner">
+    <h3 className="font-semibold text-emerald-700 mb-1 text-sm">{title}</h3>
+    <p className="text-gray-600 text-xs leading-tight">{content}</p>
+  </div>
+);
+
+// Updated TaskItem to display gamified elements and navigate to details
+const TaskItem = ({ task, showAction, setView }) => {
+  const isCompleted = task.progress >= 100;
+
+  const handleTaskClick = () => {
+    // Only navigate to details if it's not completed
+    if (showAction && !isCompleted) {
+        setView('task_details', task.id);
+    } else if (showAction && isCompleted) {
+        console.log(`Task ${task.id} already completed.`);
+    }
+  };
+
+  return (
+    <div 
+        className={`flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0 cursor-pointer transition duration-100 ${showAction ? 'hover:bg-gray-50' : ''}`}
+        onClick={handleTaskClick}
+    >
+      <div className="flex-1 mr-4">
+        <p className={`font-medium ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+          {task.name}
+        </p>
+        <div className="mt-1 flex items-center space-x-2">
+            <TaskDifficultyBadge difficulty={task.difficulty} />
+            <span className="text-xs font-semibold text-blue-600">{task.questType}</span>
+        </div>
+        <div className="mt-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            className={`h-full transition-all duration-500 ${isCompleted ? 'bg-green-500' : 'bg-emerald-500'}`}
+            style={{ width: `${Math.min(task.progress, 100)}%` }}
+          ></div>
+        </div>
+        <div className="flex justify-between text-xs text-gray-500 mt-0.5">
+            <span>{task.category}</span>
+            <span>Progress: {task.progress}%</span>
+        </div>
+      </div>
+      <div className="flex flex-col items-center justify-center min-w-[70px]">
+        {isCompleted ? (
+          <CheckCircle className="w-6 h-6 text-green-500" />
+        ) : showAction ? (
+           <button 
+                className="px-3 py-1 bg-emerald-500 text-white text-xs font-semibold rounded-full shadow-md hover:bg-emerald-600 transition duration-150"
+                onClick={handleTaskClick} // Ensure button click also navigates
+            >
+                Start Quest
+            </button>
+        ) : (
+          <>
+            <span className="text-sm font-bold text-emerald-700">{task.tokens} T$</span>
+            <span className="text-xs text-gray-500">Reward</span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Updated NavigationButton to use w-1/3 for three items in the container
+const NavigationButton = ({ icon: Icon, label, onClick }) => (
+  <button onClick={onClick} className="flex flex-col items-center p-3 w-1/3 transition duration-150 hover:bg-emerald-50 active:bg-emerald-100 rounded-xl">
+    <div className="p-3 bg-emerald-100 rounded-full">
+      <Icon className="w-6 h-6 text-emerald-600" />
+    </div>
+    <span className="mt-2 text-xs font-medium text-gray-700 text-center">{label}</span>
+  </button>
+);
+
+// Main Dashboard Content Component
+const DashboardContent = ({ tokens, level, user, setView, handleRedeem }) => {
+    // Calculate total USD value
+    const totalUSDValue = tokens * TOKEN_VALUE_USD;
+
+    return (
+    <main className="p-5 space-y-6">
+        
+        {/* 1. Wallet/Tokens (Critical Feature) */}
+        <section className="bg-emerald-600 p-5 rounded-2xl shadow-lg flex justify-start items-center text-white space-x-4"> {/* Adjusted to justify-start */}
+          
+            {/* Wallet Icon Button - Now a navigation element (Placeholder for Wallet Details screen) */}
+            <button 
+                onClick={() => setView('wallet_details')} // UPDATED TO NAVIGATE TO NEW SCREEN
+                className='p-3 bg-white/20 hover:bg-white/30 transition duration-200 rounded-full shrink-0'
+                title="View Wallet & Transactions"
+            >
+                <Wallet className="w-6 h-6 text-white"/>
+            </button>
+
+            <div>
+                <p className="text-sm font-light">
+                Green Tokens (T$) Balance
+                </p>
+                {/* Display Token amount (primary value) */}
+                <h2 className="text-4xl font-extrabold mt-1">{tokens.toLocaleString('en-US', { minimumFractionDigits: 2 })} T$</h2>
+                <p className="text-xs mt-1 opacity-80">Value: $ {totalUSDValue.toLocaleString('en-US', { minimumFractionDigits: 2 })} &bull; 1 T$ = ${TOKEN_VALUE_USD.toFixed(2)}</p>
+            </div>
+          
+          {/* REMOVED: Redeem Button */}
+        </section>
+
+        {/* 2. Quick Navigation - Now includes My Impact Stats */}
+        <section className="flex justify-around bg-gray-100 p-3 rounded-2xl shadow-inner">
+          <NavigationButton icon={Map} label="Urban Planner" onClick={() => setView('urban_planner_view')} />
+          <NavigationButton icon={BarChart3} label="My Impact Stats" onClick={() => setView('personal_stats')} />
+          <NavigationButton icon={Users} label="Leaderboard" onClick={() => setView('leaderboard')} />
+        </section>
+
+        {/* 3. Weekly Tasks - Now Quests */}
+        <section>
+          <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center">
+            <Bolt className="w-5 h-5 mr-2 text-yellow-500 fill-yellow-200" />
+            Active Quests
+          </h3>
+          <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100 divide-y divide-gray-100">
+            {tasksData.slice(0, 3).map(task => ( // Show only first 3 tasks on dashboard
+              <TaskItem key={task.id} task={task} setView={setView} />
+            ))}
+            <button 
+                onClick={() => setView('all_tasks')}
+                className="w-full mt-4 py-2 text-center text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition duration-150"
+            >
+                View All Quests
+            </button>
+          </div>
+        </section>
+
+        {/* 4. News and Economy */}
+        <section className="mb-8">
+          <h3 className="text-lg font-bold text-gray-800 mb-3">Climate & Economy News</h3>
+          <div className="space-y-3">
+            <NewsItem 
+              title="Conversion Mechanism"
+              content="Understand how your Green Tokens (T$) are converted into auditable Carbon Credits for corporate buyers."
+            />
+            <NewsItem 
+              title="Community Impact"
+              content={`Our community prevented the emission of 150 tons of CO2e last quarter, generating over $50,000 in rewards!`}
+            />
+          </div>
+        </section>
+
+    </main>
+)};
+
+// Main Application Component (App)
+export function App() { // Removida a palavra-chave 'default' daqui
+  // State for navigation control: 'dashboard', 'urban_planner_view', 'urban_planner_edit', 'all_tasks', 'resource_map', 'statistics', 'personal_stats', 'leaderboard', 'level_progression', 'task_details', 'wallet_details'
+  const [view, setView] = useState('dashboard');
+  // State to hold extra data for navigation (e.g., taskId)
+  const [navData, setNavData] = useState(null); 
+  
+  const [tokens, setTokens] = useState(1280.50);
+  const [level, setLevel] = useState('Tree'); 
+  const [user, setUser] = useState({ displayName: "ECO User", uid: '' });
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [db, setDb] = useState(null);
+  const [auth, setAuth] = useState(null);
+
+  // Custom setView wrapper to handle navigation data
+  const handleSetView = (newView, data = null) => {
+    setView(newView);
+    setNavData(data);
+  };
+
+  // Firebase/Auth Initialization Simulation
+  useEffect(() => {
+    try {
+      // Firebase configuration commented out for simulated environment
+      // ... initialization code
+      
+      // Authentication simulation
+      const currentUserId = 'simulated-user-12345';
+      setUser(prev => ({ ...prev, uid: currentUserId }));
+      setIsAuthReady(true);
+      
+      // console.log("Firebase/Auth initialized.");
+    } catch (e) {
+      // console.error("Error during Firebase initialization:", e);
+      setIsAuthReady(true); // Allows the app to continue in simulated mode
+    }
+  }, []);
+
+  // Data Listener Simulation (onSnapshot)
+  const fetchUserData = useCallback(() => {
+    if (isAuthReady && user.uid && db) {
+      // ... onSnapshot code
+      console.log("Simulating listener for user data (Tokens, Level)...");
+    }
+  }, [isAuthReady, user.uid, db]);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
+  // Mock function for Redemption
+  const handleRedeem = () => {
+    // This function is no longer called from the dashboard but kept for completeness
+    console.log("Redemption Simulation: Token/Credit liquidation request.");
+  };
+
+  if (!isAuthReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <p className="text-emerald-700 font-medium">Loading ECO City...</p>
+      </div>
+    );
+  }
+
+  // Conditional Rendering (Switch/Case)
+  let content;
+  let pageHeader = null;
+
+  switch (view) {
+    case 'wallet_details': // NEW CASE
+        content = <WalletDetailsScreen setView={handleSetView} tokens={tokens} />;
+        break;
+    case 'level_progression':
+        content = <LevelProgressionScreen setView={handleSetView} currentLevel={level} currentTokens={tokens} />;
+        break;
+    case 'task_details':
+        content = <TaskDetailsScreen setView={handleSetView} taskId={navData} />;
+        break; // New Case for Task Details
+    case 'urban_planner_view':
+      content = <UrbanPlannerViewData setView={handleSetView} userId={user.uid} />;
+      break;
+    case 'urban_planner_edit':
+      content = <UrbanPlannerEditMode setView={handleSetView} userId={user.uid} />;
+      break;
+    case 'all_tasks':
+        content = <AllTasksScreen setView={handleSetView} userId={user.uid} />;
+        break;
+    case 'resource_map':
+        content = <ResourceMapScreen setView={handleSetView} userId={user.uid} />;
+        break;
+    case 'statistics':
+        content = <StatisticsScreen setView={handleSetView} userId={user.uid} />;
+        break;
+    case 'personal_stats':
+        content = <PersonalStatisticsScreen setView={handleSetView} tokens={tokens} />;
+        break;
+    case 'leaderboard':
+        content = <LeaderboardScreen setView={handleSetView} tokens={tokens} />; 
+        break;
+    case 'dashboard':
+    default:
+      pageHeader = (
+        <header className="p-5 bg-white border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
+          <div className="flex items-center space-x-3">
+            {/* Simulated Logo (Now the new SVG logo) */}
+            <EcoCityLogoSVG className="w-10 h-10"/>
+            <div>
+              <p className="text-xs text-gray-500">Welcome,</p>
+              <h1 className="text-xl font-bold text-gray-900">{user.displayName}</h1>
+            </div>
+          </div>
+          {/* LEVEL BUTTON - Now navigates to Level Progression Screen */}
+          <button 
+            onClick={() => handleSetView('level_progression')}
+            className="p-2 px-4 bg-emerald-100 text-emerald-800 rounded-full font-semibold text-sm shadow-md hover:bg-emerald-200 transition duration-150"
+            title="View Level Progression Details"
+          >
+            Level: {level}
+          </button>
+        </header>
+      );
+      content = <DashboardContent tokens={tokens} level={level} user={user} setView={handleSetView} handleRedeem={handleRedeem} />;
+      break;
+  }
+
+  return (
+    <div className="bg-gray-50 min-h-screen flex justify-center p-4 font-sans">
+      {/* Container simulating the mobile screen */}
+      <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border-8 border-gray-900/100 transition-all duration-300">
+        
+        {/* Renders the Page Header (only on the Dashboard, or a generic header on other screens) */}
+        {pageHeader}
+
+        {/* Rendered Content */}
+        {content}
+
+      </div>
+    </div>
+  );
+}
+
+// Exportação padrão corrigida para garantir o carregamento correto do componente principal.
+export default App;
